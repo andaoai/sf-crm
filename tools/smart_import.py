@@ -17,11 +17,27 @@ def extract_certificate_level(text):
         return None
     text = str(text).lower()
 
-    # 优先检查一建相关关键词
+    # 建造师等级
     if any(keyword in text for keyword in ["一建", "一级建造师", "考一建", "备考一建", "增项一建"]):
         return "一级"
     elif any(keyword in text for keyword in ["二建", "二级建造师", "2建", "二级"]):
         return "二级"
+
+    # 工程师等级
+    elif any(keyword in text for keyword in ["高级工程师", "高工", "正高级工程师"]):
+        return "高级工程师"
+    elif any(keyword in text for keyword in ["中级工程师", "中工", "工程师"]) and "高级" not in text and "初级" not in text:
+        return "中级工程师"
+    elif any(keyword in text for keyword in ["初级工程师", "助理工程师", "技术员"]):
+        return "初级工程师"
+
+    # 三类人员
+    elif any(keyword in text for keyword in ["三类人员a", "a类", "企业主要负责人", "法定代表人"]):
+        return "三类人员A类"
+    elif any(keyword in text for keyword in ["三类人员b", "b类", "项目负责人", "项目经理"]):
+        return "三类人员B类"
+    elif any(keyword in text for keyword in ["三类人员c", "c类", "安全员", "专职安全", "c1", "c2", "c3"]):
+        return "三类人员C类"
 
     return None
 
@@ -34,6 +50,7 @@ def extract_certificate_specialty(text):
 
     # 专业关键词映射，按优先级排序（长关键词优先）
     specialty_mapping = [
+        # 建造师专业
         ("建筑工程", "建筑工程"),
         ("市政公用工程", "市政公用工程"),
         ("机电工程", "机电工程"),
@@ -44,7 +61,7 @@ def extract_certificate_specialty(text):
         ("民航机场工程", "民航机场工程"),
         ("港口与航道工程", "港口与航道工程"),
         ("通信与广电工程", "通信与广电工程"),
-        # 简称映射
+        # 建造师简称映射
         ("房建", "建筑工程"),
         ("建筑", "建筑工程"),
         ("市政", "市政公用工程"),
@@ -61,7 +78,25 @@ def extract_certificate_specialty(text):
         ("航道", "港口与航道工程"),
         ("通信与广电", "通信与广电工程"),
         ("通信", "通信与广电工程"),
-        ("广电", "通信与广电工程")
+        ("广电", "通信与广电工程"),
+
+        # 工程师专业
+        ("建筑工程师", "建筑工程师"),
+        ("结构工程师", "结构工程师"),
+        ("电气工程师", "电气工程师"),
+        ("给排水工程师", "给排水工程师"),
+        ("暖通工程师", "暖通工程师"),
+        ("建筑设计工程师", "建筑设计工程师"),
+        ("工程造价工程师", "工程造价工程师"),
+        ("造价工程师", "工程造价工程师"),
+        ("测绘工程师", "测绘工程师"),
+        ("岩土工程师", "岩土工程师"),
+        ("建筑材料工程师", "建筑材料工程师"),
+
+        # 三类人员
+        ("安全员", "安全管理"),
+        ("安全管理", "安全管理"),
+        ("专职安全", "安全管理")
     ]
 
     # 按关键词长度排序，优先匹配长关键词

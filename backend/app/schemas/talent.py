@@ -17,9 +17,9 @@ class TalentBase(BaseModel):
 
     # 新增字段
     communication_content: Optional[str] = None
-    certificate_level: Optional[CertificateLevel] = None
-    certificate_specialty: Optional[CertificateSpecialty] = None
-    social_security_status: Optional[SocialSecurityStatus] = None
+    certificate_level: Optional[str] = None  # 改为字符串类型
+    certificate_specialty: Optional[str] = None  # 改为字符串类型
+    social_security_status: Optional[str] = None  # 改为字符串类型
 
     @field_validator('certificate_expiry_date', mode='before')
     @classmethod
@@ -58,9 +58,9 @@ class TalentUpdate(BaseModel):
 
     # 新增字段
     communication_content: Optional[str] = None
-    certificate_level: Optional[CertificateLevel] = None
-    certificate_specialty: Optional[CertificateSpecialty] = None
-    social_security_status: Optional[SocialSecurityStatus] = None
+    certificate_level: Optional[str] = None  # 改为字符串类型
+    certificate_specialty: Optional[str] = None  # 改为字符串类型
+    social_security_status: Optional[str] = None  # 改为字符串类型
 
 class Talent(TalentBase):
     id: int

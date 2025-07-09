@@ -22,24 +22,52 @@
         <el-col :span="4">
           <el-select v-model="filterCertificateLevel" placeholder="证书等级" @change="handleFilter">
             <el-option label="全部等级" value="" />
-            <el-option label="一级" value="一级" />
-            <el-option label="二级" value="二级" />
+            <el-option label="一级建造师" value="一级" />
+            <el-option label="二级建造师" value="二级" />
+            <el-option label="初级工程师" value="初级工程师" />
+            <el-option label="中级工程师" value="中级工程师" />
+            <el-option label="高级工程师" value="高级工程师" />
+            <el-option label="三类人员A类" value="三类人员A类" />
+            <el-option label="三类人员B类" value="三类人员B类" />
+            <el-option label="三类人员C类" value="三类人员C类" />
             <el-option label="其他" value="其他" />
           </el-select>
         </el-col>
         <el-col :span="5">
-          <el-select v-model="filterCertificateSpecialty" placeholder="证书专业" @change="handleFilter">
-            <el-option label="全部专业" value="" />
-            <el-option label="建筑工程" value="建筑工程" />
-            <el-option label="市政公用工程" value="市政公用工程" />
-            <el-option label="机电工程" value="机电工程" />
-            <el-option label="公路工程" value="公路工程" />
-            <el-option label="水利水电工程" value="水利水电工程" />
-            <el-option label="矿业工程" value="矿业工程" />
-            <el-option label="铁路工程" value="铁路工程" />
-            <el-option label="民航机场工程" value="民航机场工程" />
-            <el-option label="港口与航道工程" value="港口与航道工程" />
-            <el-option label="通信与广电工程" value="通信与广电工程" />
+          <el-select
+            v-model="filterCertificateSpecialty"
+            placeholder="证书专业"
+            multiple
+            collapse-tags
+            collapse-tags-tooltip
+            @change="handleFilter">
+            <el-option-group label="建造师专业">
+              <el-option label="建筑工程" value="建筑工程" />
+              <el-option label="市政公用工程" value="市政公用工程" />
+              <el-option label="机电工程" value="机电工程" />
+              <el-option label="公路工程" value="公路工程" />
+              <el-option label="水利水电工程" value="水利水电工程" />
+              <el-option label="矿业工程" value="矿业工程" />
+              <el-option label="铁路工程" value="铁路工程" />
+              <el-option label="民航机场工程" value="民航机场工程" />
+              <el-option label="港口与航道工程" value="港口与航道工程" />
+              <el-option label="通信与广电工程" value="通信与广电工程" />
+            </el-option-group>
+            <el-option-group label="工程师专业">
+              <el-option label="建筑工程师" value="建筑工程师" />
+              <el-option label="结构工程师" value="结构工程师" />
+              <el-option label="电气工程师" value="电气工程师" />
+              <el-option label="给排水工程师" value="给排水工程师" />
+              <el-option label="暖通工程师" value="暖通工程师" />
+              <el-option label="建筑设计工程师" value="建筑设计工程师" />
+              <el-option label="工程造价工程师" value="工程造价工程师" />
+              <el-option label="测绘工程师" value="测绘工程师" />
+              <el-option label="岩土工程师" value="岩土工程师" />
+              <el-option label="建筑材料工程师" value="建筑材料工程师" />
+            </el-option-group>
+            <el-option-group label="三类人员">
+              <el-option label="安全管理" value="安全管理" />
+            </el-option-group>
           </el-select>
         </el-col>
         <el-col :span="4">
@@ -153,8 +181,20 @@
           <el-col :span="12">
             <el-form-item label="证书等级（可选）" prop="certificate_level">
               <el-select v-model="form.certificate_level" placeholder="请选择证书等级">
-                <el-option label="一级" value="一级" />
-                <el-option label="二级" value="二级" />
+                <el-option-group label="建造师">
+                  <el-option label="一级建造师" value="一级" />
+                  <el-option label="二级建造师" value="二级" />
+                </el-option-group>
+                <el-option-group label="工程师">
+                  <el-option label="初级工程师" value="初级工程师" />
+                  <el-option label="中级工程师" value="中级工程师" />
+                  <el-option label="高级工程师" value="高级工程师" />
+                </el-option-group>
+                <el-option-group label="三类人员">
+                  <el-option label="A类-企业主要负责人" value="三类人员A类" />
+                  <el-option label="B类-项目负责人" value="三类人员B类" />
+                  <el-option label="C类-专职安全员" value="三类人员C类" />
+                </el-option-group>
                 <el-option label="其他" value="其他" />
               </el-select>
             </el-form-item>
@@ -162,16 +202,33 @@
           <el-col :span="12">
             <el-form-item label="证书专业（可选）" prop="certificate_specialty">
               <el-select v-model="form.certificate_specialty" placeholder="请选择证书专业">
-                <el-option label="建筑工程" value="建筑工程" />
-                <el-option label="市政公用工程" value="市政公用工程" />
-                <el-option label="机电工程" value="机电工程" />
-                <el-option label="公路工程" value="公路工程" />
-                <el-option label="水利水电工程" value="水利水电工程" />
-                <el-option label="矿业工程" value="矿业工程" />
-                <el-option label="铁路工程" value="铁路工程" />
-                <el-option label="民航机场工程" value="民航机场工程" />
-                <el-option label="港口与航道工程" value="港口与航道工程" />
-                <el-option label="通信与广电工程" value="通信与广电工程" />
+                <el-option-group label="建造师专业">
+                  <el-option label="建筑工程" value="建筑工程" />
+                  <el-option label="市政公用工程" value="市政公用工程" />
+                  <el-option label="机电工程" value="机电工程" />
+                  <el-option label="公路工程" value="公路工程" />
+                  <el-option label="水利水电工程" value="水利水电工程" />
+                  <el-option label="矿业工程" value="矿业工程" />
+                  <el-option label="铁路工程" value="铁路工程" />
+                  <el-option label="民航机场工程" value="民航机场工程" />
+                  <el-option label="港口与航道工程" value="港口与航道工程" />
+                  <el-option label="通信与广电工程" value="通信与广电工程" />
+                </el-option-group>
+                <el-option-group label="工程师专业">
+                  <el-option label="建筑工程师" value="建筑工程师" />
+                  <el-option label="结构工程师" value="结构工程师" />
+                  <el-option label="电气工程师" value="电气工程师" />
+                  <el-option label="给排水工程师" value="给排水工程师" />
+                  <el-option label="暖通工程师" value="暖通工程师" />
+                  <el-option label="建筑设计工程师" value="建筑设计工程师" />
+                  <el-option label="工程造价工程师" value="工程造价工程师" />
+                  <el-option label="测绘工程师" value="测绘工程师" />
+                  <el-option label="岩土工程师" value="岩土工程师" />
+                  <el-option label="建筑材料工程师" value="建筑材料工程师" />
+                </el-option-group>
+                <el-option-group label="三类人员">
+                  <el-option label="安全管理" value="安全管理" />
+                </el-option-group>
               </el-select>
             </el-form-item>
           </el-col>
@@ -246,7 +303,7 @@ export default {
     // 筛选相关
     const searchQuery = ref('')
     const filterCertificateLevel = ref('')
-    const filterCertificateSpecialty = ref('')
+    const filterCertificateSpecialty = ref([])  // 改为数组支持多选
     const filterSocialSecurity = ref('')
     const formRef = ref()
 
@@ -287,24 +344,39 @@ export default {
     const clearFilters = () => {
       searchQuery.value = ''
       filterCertificateLevel.value = ''
-      filterCertificateSpecialty.value = ''
+      filterCertificateSpecialty.value = []  // 清空数组
       filterSocialSecurity.value = ''
       loadTalents()
     }
 
-    const loadTalents = async () => {
+    const loadTalents = async (retryCount = 0) => {
       loading.value = true
       try {
         const params = {}
         if (searchQuery.value) params.search = searchQuery.value
         if (filterCertificateLevel.value) params.certificate_level = filterCertificateLevel.value
-        if (filterCertificateSpecialty.value) params.certificate_specialty = filterCertificateSpecialty.value
+        if (filterCertificateSpecialty.value.length > 0) {
+          // 多选专业，后端需要支持数组或逗号分隔
+          params.certificate_specialty = filterCertificateSpecialty.value.join(',')
+        }
         if (filterSocialSecurity.value) params.social_security_status = filterSocialSecurity.value
 
         const response = await talentAPI.getList(params)
         talents.value = response.data.talents
+        console.log(`成功加载 ${talents.value.length} 个人才`)
       } catch (error) {
-        ElMessage.error('加载人才列表失败')
+        console.error('加载人才列表失败:', error)
+
+        // 重试机制
+        if (retryCount < 2) {
+          console.log(`重试加载人才列表 (${retryCount + 1}/2)`)
+          setTimeout(() => {
+            loadTalents(retryCount + 1)
+          }, 1000)
+          return
+        }
+
+        ElMessage.error(`加载人才列表失败: ${error.response?.data?.detail || error.message}`)
       } finally {
         loading.value = false
       }
@@ -361,14 +433,19 @@ export default {
           await talentAPI.update(editId.value, submitData)
           ElMessage.success('更新成功')
         } else {
-          await talentAPI.create(submitData)
+          const response = await talentAPI.create(submitData)
+          console.log('创建成功:', response.data)
           ElMessage.success('添加成功')
         }
 
         dialogVisible.value = false
-        loadTalents()
+        // 延迟刷新，确保数据已保存
+        setTimeout(() => {
+          loadTalents()
+        }, 500)
       } catch (error) {
-        ElMessage.error('操作失败')
+        console.error('操作失败:', error)
+        ElMessage.error(`操作失败: ${error.response?.data?.detail || error.message}`)
       }
     }
 

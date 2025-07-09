@@ -21,7 +21,7 @@ def migrate_talents_table():
         """DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'certificatelevel') THEN
-        CREATE TYPE certificatelevel AS ENUM ('一级', '二级', '其他');
+        CREATE TYPE certificatelevel AS ENUM ('一级', '二级', '初级工程师', '中级工程师', '高级工程师', '三类人员A类', '三类人员B类', '三类人员C类', '其他');
     END IF;
 END $$""",
 
@@ -35,7 +35,10 @@ BEGIN
         CREATE TYPE certificatespecialty AS ENUM (
             '建筑工程', '市政公用工程', '机电工程', '公路工程',
             '水利水电工程', '矿业工程', '铁路工程', '民航机场工程',
-            '港口与航道工程', '通信与广电工程'
+            '港口与航道工程', '通信与广电工程',
+            '建筑工程师', '结构工程师', '电气工程师', '给排水工程师',
+            '暖通工程师', '建筑设计工程师', '工程造价工程师', '测绘工程师',
+            '岩土工程师', '建筑材料工程师', '安全管理'
         );
     END IF;
 END $$""",
