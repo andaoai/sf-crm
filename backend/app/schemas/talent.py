@@ -1,0 +1,75 @@
+from pydantic import BaseModel, field_validator
+from typing import Optional, List
+from datetime import datetime, date
+from decimal import Decimal
+from ..models.talent import IntentionLevel, CertificateLevel, CertificateSpecialty, SocialSecurityStatus
+
+class TalentBase(BaseModel):
+    name: str
+    gender: Optional[str] = None
+    age: Optional[int] = None
+    phone: Optional[str] = None
+    wechat_note: Optional[str] = None
+    certificate_info: Optional[str] = None
+    certificate_expiry_date: Optional[date] = None
+    contract_price: Optional[Decimal] = None
+    intention_level: Optional[IntentionLevel] = IntentionLevel.C
+
+    # 新增字段
+    communication_content: Optional[str] = None
+    certificate_level: Optional[CertificateLevel] = None
+    certificate_specialty: Optional[CertificateSpecialty] = None
+    social_security_status: Optional[SocialSecurityStatus] = None
+
+    @field_validator('certificate_expiry_date', mode='before')
+    @classmethod
+    def validate_certificate_expiry_date(cls, v):
+        if v == '' or v is None:
+            return None
+        return v
+
+    @field_validator('contract_price', mode='before')
+    @classmethod
+    def validate_contract_price(cls, v):
+        if v == '' or v is None:
+            return None
+        return v
+
+    @field_validator('age', mode='before')
+    @classmethod
+    def validate_age(cls, v):
+        if v == '' or v is None:
+            return None
+        return v
+
+class TalentCreate(TalentBase):
+    pass
+
+class TalentUpdate(BaseModel):
+    name: Optional[str] = None
+    gender: Optional[str] = None
+    age: Optional[int] = None
+    phone: Optional[str] = None
+    wechat_note: Optional[str] = None
+    certificate_info: Optional[str] = None
+    certificate_expiry_date: Optional[date] = None
+    contract_price: Optional[Decimal] = None
+    intention_level: Optional[IntentionLevel] = None
+
+    # 新增字段
+    communication_content: Optional[str] = None
+    certificate_level: Optional[CertificateLevel] = None
+    certificate_specialty: Optional[CertificateSpecialty] = None
+    social_security_status: Optional[SocialSecurityStatus] = None
+
+class Talent(TalentBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class TalentList(BaseModel):
+    talents: List[Talent]
+    total: int
