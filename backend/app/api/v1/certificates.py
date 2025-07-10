@@ -72,6 +72,7 @@ def get_certificates(
     specialty: Optional[str] = Query(None, description="专业方向"),
     level: Optional[str] = Query(None, description="等级"),
     search: Optional[str] = Query(None, description="搜索关键词"),
+    talent_name: Optional[str] = Query(None, description="人才姓名"),
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db)
@@ -88,8 +89,8 @@ def get_certificates(
         level=level
     )
 
-    # 获取证书列表
-    certificates = crud_certificate.get_certificates(db, query, skip=skip, limit=limit)
+    # 获取证书列表，支持人才名称搜索
+    certificates = crud_certificate.get_certificates(db, query, talent_name=talent_name, skip=skip, limit=limit)
 
     # 为每个证书添加人才信息
     result = []

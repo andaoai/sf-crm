@@ -53,10 +53,22 @@ def get_certificates_by_talent(db: Session, talent_id: int) -> List[Certificate]
     """获取某个人才的所有证书"""
     return db.query(Certificate).filter(Certificate.talent_id == talent_id).all()
 
-def get_certificates(db: Session, query: CertificateQuery, skip: int = 0, limit: int = 100) -> List[Certificate]:
+def get_certificates(db: Session, query: CertificateQuery, talent_name: str = None, skip: int = 0, limit: int = 100) -> List[Certificate]:
     """根据查询条件获取证书列表"""
+    from ..models.talent import Talent
+
     db_query = db.query(Certificate)
-    
+
+    # 记录已经JOIN的表，避免重复JOIN
+    joined_talent = False
+    joined_cert_type = False
+
+    # 如果需要按人才名称搜索，需要关联人才表
+    if talent_name:
+        db_query = db_query.join(Talent, Certificate.talent_id == Talent.id)
+        db_query = db_query.filter(Talent.name.like(f"%{talent_name}%"))
+        joined_talent = True
+
     if query.talent_id:
         db_query = db_query.filter(Certificate.talent_id == query.talent_id)
     if query.certificate_type:
@@ -67,12 +79,14 @@ def get_certificates(db: Session, query: CertificateQuery, skip: int = 0, limit:
         db_query = db_query.filter(Certificate.specialty.like(f"%{query.specialty}%"))
     if query.level:
         db_query = db_query.filter(Certificate.level == query.level)
-    
+
     # 如果指定了证书大类，需要关联证书类型表
     if query.category:
-        db_query = db_query.join(CertificateType, Certificate.certificate_type == CertificateType.type_name)\
-                          .filter(CertificateType.category == query.category)
-    
+        if not joined_cert_type:
+            db_query = db_query.join(CertificateType, Certificate.certificate_type == CertificateType.type_name)
+            joined_cert_type = True
+        db_query = db_query.filter(CertificateType.category == query.category)
+
     return db_query.offset(skip).limit(limit).all()
 
 def create_certificate(db: Session, certificate: CertificateCreate) -> Certificate:

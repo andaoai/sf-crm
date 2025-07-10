@@ -18,13 +18,13 @@
               <el-icon><User /></el-icon>
               <span>人才管理</span>
             </el-menu-item>
-            <el-menu-item index="/communications">
-              <el-icon><ChatDotRound /></el-icon>
-              <span>沟通记录</span>
-            </el-menu-item>
             <el-menu-item index="/certificates">
               <el-icon><Medal /></el-icon>
               <span>证书管理</span>
+            </el-menu-item>
+            <el-menu-item index="/communications">
+              <el-icon><ChatDotRound /></el-icon>
+              <span>沟通记录</span>
             </el-menu-item>
           </el-menu>
         </div>
@@ -59,6 +59,8 @@ import { OfficeBuilding, User, ChatDotRound, Medal } from '@element-plus/icons-v
   align-items: center;
   height: 100%;
   padding: 0 20px;
+  width: 100%;
+  min-width: 800px;
 }
 
 .header-content h1 {
@@ -70,10 +72,19 @@ import { OfficeBuilding, User, ChatDotRound, Medal } from '@element-plus/icons-v
 .nav-menu {
   background-color: transparent;
   border-bottom: none;
+  flex: 1;
+  min-width: 600px;
+}
+
+.nav-menu .el-menu {
+  width: 100%;
 }
 
 .nav-menu .el-menu-item {
   color: white;
+  min-width: 120px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-menu .el-menu-item:hover {

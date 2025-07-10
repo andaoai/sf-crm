@@ -13,9 +13,14 @@
     <!-- 搜索筛选区域 -->
     <div class="search-section">
       <el-card>
-        <el-form :model="searchForm" inline>
+        <el-form :model="searchForm" inline class="search-form">
           <el-form-item label="证书类型">
-            <el-select v-model="searchForm.certificateType" placeholder="选择证书类型" clearable>
+            <el-select
+              v-model="searchForm.certificateType"
+              placeholder="选择证书类型"
+              clearable
+              style="width: 180px"
+            >
               <el-option
                 v-for="type in certificateTypes"
                 :key="type.type_code"
@@ -23,9 +28,15 @@
                 :value="type.type_name"
               />
             </el-select>
+
           </el-form-item>
           <el-form-item label="证书大类">
-            <el-select v-model="searchForm.category" placeholder="选择证书大类" clearable>
+            <el-select
+              v-model="searchForm.category"
+              placeholder="选择证书大类"
+              clearable
+              style="width: 150px"
+            >
               <el-option
                 v-for="category in categories"
                 :key="category"
@@ -33,12 +44,38 @@
                 :value="category"
               />
             </el-select>
+
           </el-form-item>
           <el-form-item label="证书状态">
-            <el-select v-model="searchForm.status" placeholder="选择状态">
+            <el-select
+              v-model="searchForm.status"
+              placeholder="选择状态"
+              clearable
+              style="width: 120px"
+            >
+              <el-option label="全部" value="" />
               <el-option label="有效" value="VALID" />
               <el-option label="过期" value="EXPIRED" />
               <el-option label="注销" value="REVOKED" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="人才搜索">
+            <el-select
+              v-model="searchForm.talentName"
+              placeholder="搜索人才姓名"
+              filterable
+              remote
+              clearable
+              :remote-method="searchTalents"
+              :loading="talentSearchLoading"
+              style="width: 200px"
+            >
+              <el-option
+                v-for="talent in talentOptions"
+                :key="talent.id"
+                :label="talent.name"
+                :value="talent.name"
+              />
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -176,8 +213,13 @@ const highlightCertificateId = ref(null)
 const searchForm = reactive({
   certificateType: '',
   category: '',
-  status: 'VALID'
+  status: '',
+  talentName: ''
 })
+
+// 人才搜索相关
+const talentOptions = ref([])
+const talentSearchLoading = ref(false)
 
 // 统计数据
 const stats = reactive({
@@ -200,12 +242,20 @@ const categories = computed(() => {
 const loadCertificates = async () => {
   loading.value = true
   try {
+    // 过滤掉空值参数
+    const filteredParams = {}
+    Object.keys(searchForm).forEach(key => {
+      if (searchForm[key] && searchForm[key].trim() !== '') {
+        filteredParams[key] = searchForm[key]
+      }
+    })
+
     const params = {
       skip: (currentPage.value - 1) * pageSize.value,
       limit: pageSize.value,
-      ...searchForm
+      ...filteredParams
     }
-    
+
     const response = await certificateAPI.getList(params)
     certificates.value = response.data
     // 注意：这里需要后端返回总数，暂时使用数组长度
@@ -224,10 +274,11 @@ const loadCertificates = async () => {
 const loadCertificateTypes = async () => {
   try {
     const response = await certificateAPI.getTypes()
-    certificateTypes.value = response.data
+    certificateTypes.value = response.data || []
   } catch (error) {
     ElMessage.error('加载证书类型失败')
-    console.error(error)
+    console.error('加载证书类型错误:', error)
+    certificateTypes.value = []
   }
 }
 
@@ -249,8 +300,10 @@ const resetSearch = () => {
   Object.assign(searchForm, {
     certificateType: '',
     category: '',
-    status: 'VALID'
+    status: '',
+    talentName: ''
   })
+  talentOptions.value = []
   searchCertificates()
 }
 
@@ -294,10 +347,33 @@ const handleCurrentChange = (page) => {
   loadCertificates()
 }
 
+// 人才搜索方法
+const searchTalents = async (query) => {
+  if (!query) {
+    talentOptions.value = []
+    return
+  }
+
+  talentSearchLoading.value = true
+  try {
+    // 调用人才搜索API
+    const response = await fetch(`/api/talents/?search=${encodeURIComponent(query)}`)
+    const data = await response.json()
+    talentOptions.value = data.slice(0, 10) // 限制显示前10个结果
+  } catch (error) {
+    console.error('搜索人才失败:', error)
+    talentOptions.value = []
+  } finally {
+    talentSearchLoading.value = false
+  }
+}
+
 const viewTalent = (talentId) => {
   // 跳转到人才详情页面
   // router.push(`/talents/${talentId}`)
 }
+
+
 
 const getStatusType = (status) => {
   const types = {
@@ -347,9 +423,21 @@ const getHighlightFromUrl = () => {
   }
 }
 
+// 从URL参数获取人才名称并自动搜索
+const getTalentNameFromUrl = () => {
+  const urlParams = new URLSearchParams(window.location.search)
+  const talentName = urlParams.get('talentName')
+  if (talentName) {
+    searchForm.talentName = talentName
+    // 自动搜索该人才的证书
+    searchTalents(talentName)
+  }
+}
+
 // 生命周期
 onMounted(() => {
   getHighlightFromUrl()
+  getTalentNameFromUrl()
   loadCertificateTypes()
   loadCertificates()
 })
@@ -376,6 +464,18 @@ onMounted(() => {
 .stats-section,
 .table-section {
   margin-bottom: 20px;
+}
+
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-form .el-form-item {
+  margin-bottom: 10px;
+  margin-right: 15px;
 }
 
 .stat-card {

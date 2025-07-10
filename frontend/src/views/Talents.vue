@@ -134,7 +134,7 @@
               size="small"
               :type="cert.type"
               class="cert-tag clickable-cert-tag"
-              @click="goToCertificateDetail(cert.certificate_id)"
+              @click="goToCertificateDetail(cert.certificate_id, scope.row.name)"
               :title="`点击查看证书详情: ${cert.display}`"
             >
               {{ cert.display }}
@@ -890,10 +890,15 @@ export default {
     }
 
     // 跳转到证书详情
-    const goToCertificateDetail = (certificateId) => {
+    const goToCertificateDetail = (certificateId, talentName) => {
       if (certificateId) {
-        // 跳转到证书管理页面并高亮显示指定证书
-        window.open(`/certificates?highlight=${certificateId}`, '_blank')
+        // 跳转到证书管理页面，高亮显示指定证书，并搜索人才名称
+        const params = new URLSearchParams()
+        params.append('highlight', certificateId)
+        if (talentName) {
+          params.append('talentName', talentName)
+        }
+        window.open(`/certificates?${params.toString()}`, '_blank')
       }
     }
 
