@@ -128,6 +128,66 @@ def get_certificates(
 
     return result
 
+@router.get("/stats")
+def get_certificate_stats(
+    talent_id: Optional[int] = Query(None, description="人才ID"),
+    certificate_type: Optional[str] = Query(None, description="证书类型"),
+    category: Optional[str] = Query(None, description="证书大类"),
+    status: Optional[CertificateStatusEnum] = Query(None, description="证书状态"),
+    specialty: Optional[str] = Query(None, description="专业方向"),
+    level: Optional[str] = Query(None, description="等级"),
+    search: Optional[str] = Query(None, description="搜索关键词"),
+    talent_name: Optional[str] = Query(None, description="人才姓名"),
+    db: Session = Depends(get_db)
+):
+    """获取证书统计信息"""
+    from ...models.talent import Talent
+    from datetime import datetime, timedelta
+
+    query = CertificateQuery(
+        talent_id=talent_id,
+        certificate_type=certificate_type,
+        category=category,
+        status=status,
+        specialty=specialty,
+        level=level
+    )
+
+    # 获取所有符合条件的证书（不分页）
+    all_certificates = crud_certificate.get_certificates(db, query, talent_name=talent_name, skip=0, limit=10000)
+
+    # 统计数据
+    total = len(all_certificates)
+
+    # 导入枚举类型
+    from ...models.certificate import CertificateStatus
+
+    valid = len([cert for cert in all_certificates if cert.status == CertificateStatus.VALID])
+    expired = len([cert for cert in all_certificates if cert.status == CertificateStatus.EXPIRED])
+
+    # 计算即将过期的证书（30天内过期）
+    expiring_soon = 0
+    current_date = datetime.now().date()
+    for cert in all_certificates:
+        if cert.expiry_date and cert.status == CertificateStatus.VALID:
+            expiry_date = cert.expiry_date
+            if isinstance(expiry_date, str):
+                try:
+                    expiry_date = datetime.strptime(expiry_date, '%Y-%m-%d').date()
+                except:
+                    continue
+
+            days_until_expiry = (expiry_date - current_date).days
+            if 0 <= days_until_expiry <= 30:
+                expiring_soon += 1
+
+    return {
+        "total": total,
+        "valid": valid,
+        "expired": expired,
+        "expiring": expiring_soon
+    }
+
 @router.post("/", response_model=Certificate)
 def create_certificate(
     certificate: CertificateCreate,
