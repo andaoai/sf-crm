@@ -15,19 +15,14 @@
       <el-card>
         <el-form :model="searchForm" inline class="search-form">
           <el-form-item label="证书类型">
-            <el-select
+            <el-autocomplete
               v-model="searchForm.certificateType"
-              placeholder="选择证书类型"
+              :fetch-suggestions="queryCertificateTypesForFilter"
+              placeholder="输入证书类型筛选"
               clearable
               style="width: 180px"
-            >
-              <el-option
-                v-for="type in certificateTypes"
-                :key="type.type_code"
-                :label="type.type_name"
-                :value="type.type_name"
-              />
-            </el-select>
+              @select="handleFilterTypeSelect"
+            />
 
           </el-form-item>
           <el-form-item label="证书大类">
@@ -184,7 +179,6 @@
     <CertificateDialog
       v-model="showAddDialog"
       :certificate="currentCertificate"
-      :certificate-types="certificateTypes"
       @success="handleDialogSuccess"
     />
   </div>
@@ -200,7 +194,6 @@ import CertificateDialog from '../components/CertificateDialog.vue'
 // 响应式数据
 const loading = ref(false)
 const certificates = ref([])
-const certificateTypes = ref([])
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)
@@ -230,9 +223,10 @@ const stats = reactive({
 
 // 计算属性
 const categories = computed(() => {
+  // 从现有证书中提取分类信息
   const cats = new Set()
-  certificateTypes.value.forEach(type => {
-    if (type.category) cats.add(type.category)
+  certificates.value.forEach(cert => {
+    if (cert.category) cats.add(cert.category)
   })
   return Array.from(cats)
 })
@@ -270,15 +264,37 @@ const loadCertificates = async () => {
   }
 }
 
-const loadCertificateTypes = async () => {
+const queryCertificateTypesForFilter = async (queryString, callback) => {
   try {
-    const response = await certificateAPI.getTypes()
-    certificateTypes.value = response.data || []
+    // 从现有证书中获取类型列表
+    const typeCount = {}
+    certificates.value.forEach(cert => {
+      if (cert.certificate_type) {
+        typeCount[cert.certificate_type] = (typeCount[cert.certificate_type] || 0) + 1
+      }
+    })
+
+    let suggestions = Object.keys(typeCount).map(type => ({
+      value: type
+    }))
+
+    // 过滤建议
+    if (queryString) {
+      suggestions = suggestions.filter(item =>
+        item.value.toLowerCase().includes(queryString.toLowerCase())
+      )
+    }
+
+    callback(suggestions)
   } catch (error) {
-    ElMessage.error('加载证书类型失败')
-    console.error('加载证书类型错误:', error)
-    certificateTypes.value = []
+    console.error('获取证书类型失败:', error)
+    callback([])
   }
+}
+
+const handleFilterTypeSelect = (item) => {
+  searchForm.certificateType = item.value
+  loadCertificates()
 }
 
 const updateStats = async () => {
@@ -455,7 +471,6 @@ const getTalentNameFromUrl = () => {
 onMounted(() => {
   getHighlightFromUrl()
   getTalentNameFromUrl()
-  loadCertificateTypes()
   loadCertificates()
 })
 </script>

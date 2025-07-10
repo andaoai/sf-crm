@@ -32,18 +32,21 @@
       </el-form-item>
 
       <el-form-item label="证书类型" prop="certificate_type">
-        <el-select
+        <el-autocomplete
           v-model="form.certificate_type"
-          placeholder="选择证书类型"
+          :fetch-suggestions="queryCertificateTypes"
+          placeholder="请输入证书类型"
           style="width: 100%"
+          clearable
+          @select="handleCertificateTypeSelect"
         >
-          <el-option
-            v-for="type in certificateTypes"
-            :key="type.type_code"
-            :label="type.type_name"
-            :value="type.type_name"
-          />
-        </el-select>
+          <template #default="{ item }">
+            <div class="certificate-type-item">
+              <span>{{ item.value }}</span>
+              <span class="count">({{ item.count }})</span>
+            </div>
+          </template>
+        </el-autocomplete>
       </el-form-item>
 
       <el-form-item label="证书编号" prop="certificate_number">
@@ -156,8 +159,7 @@ import { certificateAPI, talentAPI } from '../api'
 // Props
 const props = defineProps({
   modelValue: Boolean,
-  certificate: Object,
-  certificateTypes: Array
+  certificate: Object
 })
 
 // Emits
@@ -186,7 +188,7 @@ const form = reactive({
 // 表单验证规则
 const rules = {
   certificate_type: [
-    { required: true, message: '请选择证书类型', trigger: 'change' }
+    { required: true, message: '请输入证书类型', trigger: 'blur' }
   ]
 }
 
@@ -213,12 +215,12 @@ watch(() => props.modelValue, (newVal) => {
 // 方法
 const searchTalents = async (query) => {
   if (!query) return
-  
+
   talentLoading.value = true
   try {
-    const response = await talentAPI.getList({ 
+    const response = await talentAPI.getList({
       search: query,
-      limit: 20 
+      limit: 20
     })
     talents.value = response.data.talents || response.data
   } catch (error) {
@@ -226,6 +228,56 @@ const searchTalents = async (query) => {
   } finally {
     talentLoading.value = false
   }
+}
+
+const queryCertificateTypes = async (queryString, callback) => {
+  try {
+    // 获取已有的证书类型（从现有证书中统计）
+    const response = await certificateAPI.getList({ limit: 1000 })
+    const certificates = response.data.certificates || response.data
+
+    // 统计证书类型及其使用次数
+    const typeCount = {}
+    certificates.forEach(cert => {
+      if (cert.certificate_type) {
+        typeCount[cert.certificate_type] = (typeCount[cert.certificate_type] || 0) + 1
+      }
+    })
+
+    // 转换为自动补全格式
+    let suggestions = Object.keys(typeCount).map(type => ({
+      value: type,
+      count: typeCount[type]
+    }))
+
+    // 如果有查询字符串，进行过滤
+    if (queryString) {
+      suggestions = suggestions.filter(item =>
+        item.value.toLowerCase().includes(queryString.toLowerCase())
+      )
+    }
+
+    // 按使用次数排序
+    suggestions.sort((a, b) => b.count - a.count)
+
+    // 如果输入的是新类型，添加到建议中
+    if (queryString && !suggestions.find(s => s.value === queryString)) {
+      suggestions.unshift({
+        value: queryString,
+        count: 0,
+        isNew: true
+      })
+    }
+
+    callback(suggestions)
+  } catch (error) {
+    console.error('获取证书类型失败:', error)
+    callback([])
+  }
+}
+
+const handleCertificateTypeSelect = (item) => {
+  form.certificate_type = item.value
 }
 
 const loadTalentById = async (talentId) => {
@@ -291,5 +343,20 @@ const resetForm = () => {
 <style scoped>
 .dialog-footer {
   text-align: right;
+}
+
+.certificate-type-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.certificate-type-item .count {
+  color: #999;
+  font-size: 12px;
+}
+
+.certificate-type-item .count:before {
+  content: "已使用 ";
 }
 </style>
