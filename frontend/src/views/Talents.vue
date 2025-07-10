@@ -740,62 +740,213 @@ export default {
       return tags
     }
 
-    // 获取优化后的证书标签信息（证书类型 + 专业 + 等级）
+    // 获取优化后的证书标签信息（简化显示：按照新的格式要求）
     const getOptimizedCertificateTags = (talentId) => {
       const certificates = talentCertificates.value[talentId] || []
       if (certificates.length === 0) return []
 
-      const tags = []
-      const seenCombinations = new Set()
+      // 按证书类型分组
+      const certGroups = {
+        constructor: [], // 建造师
+        engineer: [],    // 工程师/职称
+        safety: [],      // 安全员
+        other: []        // 其他
+      }
 
-      // 去重处理：相同证书类型只显示一次
-      const uniqueCerts = []
-      const certTypes = new Set()
-
+      // 分类证书
       certificates.forEach(cert => {
-        if (cert.certificate_type && !certTypes.has(cert.certificate_type)) {
-          certTypes.add(cert.certificate_type)
-          uniqueCerts.push(cert)
+        if (!cert.certificate_type) return
+
+        if (cert.certificate_type.includes('建造师')) {
+          certGroups.constructor.push(cert)
+        } else if (cert.certificate_type.includes('工程师') || cert.certificate_type.includes('职称')) {
+          certGroups.engineer.push(cert)
+        } else if (cert.certificate_type.includes('安全员') || cert.certificate_type.includes('三类人员')) {
+          certGroups.safety.push(cert)
+        } else {
+          certGroups.other.push(cert)
         }
       })
 
-      // 取前5个不重复的证书
-      const displayedCerts = uniqueCerts.slice(0, 5)
+      // 收集所有证书信息用于组合显示
+      const allCertInfo = {
+        constructor: {},  // 建造师: {level: [specialties]}
+        engineer: {},     // 工程师: {specialty+level: info}
+        safety: new Set() // 安全员: Set of types
+      }
 
-      displayedCerts.forEach((cert, index) => {
-        // 证书类型标签（主要信息）
-        if (cert.certificate_type) {
-          tags.push({
-            id: `type-${cert.certificate_id}-${index}`,
-            certificate_id: cert.certificate_id,
-            display: cert.certificate_type,
-            type: 'primary'
-          })
+      // 收集建造师信息
+      certGroups.constructor.forEach(cert => {
+        const level = cert.certificate_type.includes('一级') ? '一级' :
+                     cert.certificate_type.includes('二级') ? '二级' : '建造师'
+
+        if (!allCertInfo.constructor[level]) {
+          allCertInfo.constructor[level] = []
         }
 
-        // 专业标签（如果有且不重复）
+        // 简化专业名称
+        let specialty = cert.specialty || ''
+        const specialtyMap = {
+          '建筑工程': '房建',
+          '市政公用工程': '市政',
+          '市政工程': '市政',
+          '机电工程': '机电',
+          '公路工程': '公路',
+          '水利水电工程': '水利',
+          '矿业工程': '矿业',
+          '铁路工程': '铁路',
+          '民航机场工程': '民航',
+          '港口与航道工程': '港口',
+          '通信与广电工程': '通信'
+        }
+        specialty = specialtyMap[specialty] || specialty
+
+        if (specialty && !allCertInfo.constructor[level].includes(specialty)) {
+          allCertInfo.constructor[level].push(specialty)
+        }
+      })
+
+      // 收集工程师信息
+      certGroups.engineer.forEach(cert => {
+        let level = ''
+        let specialty = ''
+
+        // 提取等级
+        if (cert.level) {
+          if (cert.level.includes('初级')) level = '初'
+          else if (cert.level.includes('中级')) level = '中'
+          else if (cert.level.includes('高级')) level = '高'
+        }
+
+        // 提取专业
         if (cert.specialty) {
-          const specialtyKey = cert.specialty
-          if (!seenCombinations.has(specialtyKey)) {
-            seenCombinations.add(specialtyKey)
-            tags.push({
-              id: `specialty-${cert.certificate_id}-${index}`,
-              certificate_id: cert.certificate_id,
-              display: cert.specialty,
-              type: 'success'
-            })
+          const specialtyMap = {
+            '电气工程': '电气自动化',
+            '电气工程师': '电气自动化',
+            '给排水工程': '给排水',
+            '给排水工程师': '给排水',
+            '建筑工程': '房建',
+            '建筑工程师': '房建',
+            '结构工程': '结构',
+            '结构工程师': '结构',
+            '暖通工程': '暖通',
+            '暖通工程师': '暖通',
+            '工程造价': '造价',
+            '造价工程师': '造价'
+          }
+          specialty = specialtyMap[cert.specialty] || cert.specialty
+        }
+
+        const key = `${specialty}${level}`
+        if (!allCertInfo.engineer[key]) {
+          allCertInfo.engineer[key] = {
+            specialty: specialty,
+            level: level,
+            cert: cert
           }
         }
+      })
 
-        // 等级标签（如果有且值得显示）
-        if (cert.level && cert.level !== '一级' && cert.level !== cert.certificate_type) {
-          tags.push({
-            id: `level-${cert.certificate_id}-${index}`,
-            certificate_id: cert.certificate_id,
-            display: cert.level,
-            type: 'warning'
-          })
+      // 收集安全员信息
+      certGroups.safety.forEach(cert => {
+        if (cert.certificate_type.includes('A类') || cert.level === '三类人员A类') {
+          allCertInfo.safety.add('A')
+        } else if (cert.certificate_type.includes('B类') || cert.level === '三类人员B类') {
+          allCertInfo.safety.add('B')
+        } else if (cert.certificate_type.includes('C类') || cert.level === '三类人员C类') {
+          allCertInfo.safety.add('C')
         }
+      })
+
+      const tags = []
+
+      // 生成组合标签
+      const hasConstructor = Object.keys(allCertInfo.constructor).length > 0
+
+      if (hasConstructor) {
+        // 有建造师的情况，进行组合显示
+        Object.keys(allCertInfo.constructor).forEach(level => {
+          const specialties = allCertInfo.constructor[level]
+          let displayText = `${level}建造师`
+
+          if (specialties.length > 0) {
+            displayText += specialties.join('+')
+          }
+
+          // 查找相同专业的职称证书进行组合
+          const matchingEngineers = []
+          const engineerKeys = Object.keys(allCertInfo.engineer)
+          engineerKeys.forEach(key => {
+            const eng = allCertInfo.engineer[key]
+            if (specialties.includes(eng.specialty)) {
+              matchingEngineers.push(`${eng.specialty}${eng.level}工`)
+              // 从工程师列表中移除已组合的
+              delete allCertInfo.engineer[key]
+            }
+          })
+
+          // 添加职称信息
+          if (matchingEngineers.length > 0) {
+            displayText += '+' + matchingEngineers.join('+')
+          }
+
+          // 添加安全员信息（只在有建造师时合并）
+          if (allCertInfo.safety.size > 0) {
+            const safetyArray = Array.from(allCertInfo.safety).sort()
+            displayText += '+' + safetyArray.join('')
+            // 清空安全员信息，避免重复显示
+            allCertInfo.safety.clear()
+          }
+
+          tags.push({
+            id: `constructor-${level}`,
+            certificate_id: certGroups.constructor[0]?.certificate_id,
+            display: displayText,
+            type: 'success'
+          })
+        })
+      }
+
+      // 处理剩余的工程师证书（没有对应建造师的）
+      Object.values(allCertInfo.engineer).forEach(item => {
+        let displayText = ''
+        if (item.specialty && item.level) {
+          displayText = `${item.specialty}${item.level}工`
+        } else if (item.specialty) {
+          displayText = `${item.specialty}工程师`
+        } else {
+          displayText = item.cert.certificate_type
+        }
+
+        tags.push({
+          id: `engineer-${item.specialty}-${item.level}`,
+          certificate_id: item.cert.certificate_id,
+          display: displayText,
+          type: 'primary'
+        })
+      })
+
+      // 如果没有建造师但有安全员，单独显示安全员
+      if (Object.keys(allCertInfo.constructor).length === 0 && allCertInfo.safety.size > 0) {
+        const safetyArray = Array.from(allCertInfo.safety).sort()
+        tags.push({
+          id: 'safety',
+          certificate_id: certGroups.safety[0]?.certificate_id,
+          display: safetyArray.join('+'),
+          type: 'warning'
+        })
+      }
+
+
+
+      // 处理其他证书
+      certGroups.other.forEach((cert, index) => {
+        tags.push({
+          id: `other-${index}`,
+          certificate_id: cert.certificate_id,
+          display: cert.certificate_type,
+          type: 'info'
+        })
       })
 
       return tags

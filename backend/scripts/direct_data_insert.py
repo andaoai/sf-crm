@@ -178,52 +178,77 @@ def insert_certificates(talents):
     if not talents:
         print("没有人才数据，跳过证书插入")
         return []
-    
+
     conn = None
     cursor = None
-    
+
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        
+
         print("插入证书数据...")
         certificates = []
-        
+
+        # 定义更真实的证书组合
+        cert_combinations = [
+            # 建造师 + 对应专业
+            {"type": "一级建造师", "specialty": "建筑工程", "level": "一级"},
+            {"type": "一级建造师", "specialty": "市政工程", "level": "一级"},
+            {"type": "一级建造师", "specialty": "机电工程", "level": "一级"},
+            {"type": "二级建造师", "specialty": "建筑工程", "level": "二级"},
+            {"type": "二级建造师", "specialty": "市政工程", "level": "二级"},
+            {"type": "二级建造师", "specialty": "机电工程", "level": "二级"},
+
+            # 工程师职称
+            {"type": "注册电气工程师", "specialty": "电气工程", "level": "中级"},
+            {"type": "注册给排水工程师", "specialty": "给排水工程", "level": "中级"},
+            {"type": "注册建筑师", "specialty": "建筑工程", "level": "高级"},
+            {"type": "注册结构师", "specialty": "结构工程", "level": "高级"},
+            {"type": "监理工程师", "specialty": "建筑工程", "level": "中级"},
+            {"type": "一级造价工程师", "specialty": "工程造价", "level": "高级"},
+
+            # 安全员
+            {"type": "三类人员A类", "specialty": "安全管理", "level": "三类人员A类"},
+            {"type": "三类人员B类", "specialty": "安全管理", "level": "三类人员B类"},
+            {"type": "三类人员C类", "specialty": "安全管理", "level": "三类人员C类"},
+        ]
+
         for talent in talents:
-            cert_count = random.randint(1, 3)  # 每个人才1-3个证书
-            
-            for j in range(cert_count):
+            cert_count = random.randint(1, 4)  # 每个人才1-4个证书
+            selected_certs = random.sample(cert_combinations, min(cert_count, len(cert_combinations)))
+
+            for j, cert_info in enumerate(selected_certs):
                 cert_id = str(uuid.uuid4())[:8].upper()
                 cert_data = (
                     cert_id,  # certificate_id
                     talent["id"],  # talent_id
-                    random.choice(CERTIFICATE_TYPES),  # certificate_type
-                    f"{random.choice(CERTIFICATE_TYPES)}（{random.choice(SPECIALTIES)}）",  # certificate_name
+                    cert_info["type"],  # certificate_type
+                    f"{cert_info['type']}（{cert_info['specialty']}）",  # certificate_name
                     f"CERT{random.randint(100000, 999999)}",  # certificate_number
                     (datetime.now() - timedelta(days=random.randint(365, 1825))).date(),  # issue_date
                     (datetime.now() + timedelta(days=random.randint(365, 1825))).date(),  # expiry_date
                     random.choice(["住建部", "人社部", "工信部", "交通部"]),  # issuing_authority
-                    random.choice(SPECIALTIES),  # specialty
-                    random.choice(LEVELS),  # level
+                    cert_info["specialty"],  # specialty
+                    cert_info["level"],  # level
                     random.choice(["VALID", "VALID", "VALID", "EXPIRED"]),  # status (大部分有效)
                     f"证书备注{j+1}",  # notes
                     datetime.now(),  # created_at
                     datetime.now()   # updated_at
                 )
-                
+
                 cursor.execute("""
                     INSERT INTO certificates (certificate_id, talent_id, certificate_type, certificate_name,
                                             certificate_number, issue_date, expiry_date, issuing_authority,
                                             specialty, level, status, notes, created_at, updated_at)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, cert_data)
-                
+
                 certificates.append({"id": cert_id, "talent_id": talent["id"]})
-        
+
         conn.commit()
         print(f"✓ 成功插入 {len(certificates)} 个证书")
         return certificates
-        
+
     except Exception as e:
         print(f"✗ 插入证书数据失败: {e}")
         if conn:
