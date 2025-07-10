@@ -878,7 +878,18 @@ export default {
           const engineerKeys = Object.keys(allCertInfo.engineer)
           engineerKeys.forEach(key => {
             const eng = allCertInfo.engineer[key]
-            if (specialties.includes(eng.specialty)) {
+            // 检查专业是否匹配（建造师专业和工程师专业的对应关系）
+            const isMatching = specialties.some(constructorSpecialty => {
+              // 直接匹配
+              if (constructorSpecialty === eng.specialty) return true
+              // 房建专业匹配
+              if ((constructorSpecialty === '房建' || constructorSpecialty === '建筑') &&
+                  (eng.specialty === '房建' || eng.specialty === '建筑')) return true
+              // 其他专业匹配规则可以在这里添加
+              return false
+            })
+
+            if (isMatching && eng.level) {
               matchingEngineers.push(`${eng.specialty}${eng.level}工`)
               // 从工程师列表中移除已组合的
               delete allCertInfo.engineer[key]
