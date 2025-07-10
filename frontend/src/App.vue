@@ -11,7 +11,7 @@
             class="nav-menu"
           >
             <el-menu-item index="/companies">
-              <el-icon><Office /></el-icon>
+              <el-icon><OfficeBuilding /></el-icon>
               <span>公司管理</span>
             </el-menu-item>
             <el-menu-item index="/talents">
@@ -21,6 +21,10 @@
             <el-menu-item index="/communications">
               <el-icon><ChatDotRound /></el-icon>
               <span>沟通记录</span>
+            </el-menu-item>
+            <el-menu-item index="/certificates">
+              <el-icon><Medal /></el-icon>
+              <span>证书管理</span>
             </el-menu-item>
           </el-menu>
         </div>
@@ -32,10 +36,8 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: 'App'
-}
+<script setup>
+import { OfficeBuilding, User, ChatDotRound, Medal } from '@element-plus/icons-vue'
 </script>
 
 <style>

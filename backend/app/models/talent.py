@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Date, Enum, Numeric
+from sqlalchemy import Column, Integer, String, Text, DateTime, Enum, Numeric
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from ..database import Base
@@ -61,19 +61,21 @@ class Talent(Base):
     age = Column(Integer)
     phone = Column(String(20))  # 电话号码
     wechat_note = Column(Text)  # 微信添加备注
-    certificate_info = Column(Text)  # 建造师证书信息
-    certificate_expiry_date = Column(Date)  # 证书到期时间
     contract_price = Column(Numeric(10, 2))  # 签订合同价格
     intention_level = Column(Enum(IntentionLevel), default=IntentionLevel.C)  # 人才意向等级
 
+    # 地区信息
+    province = Column(String(50))  # 省份
+    city = Column(String(50))  # 城市
+    address = Column(Text)  # 详细地址
+
     # 新增字段
     communication_content = Column(Text)  # 沟通内容
-    certificate_level = Column(String(50))  # 证书等级 - 改为字符串类型
-    certificate_specialty = Column(String(50))  # 证书专业 - 改为字符串类型
     social_security_status = Column(String(20))  # 社保情况 - 改为字符串类型
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    # 关联沟通记录
+    # 关联关系
     communications = relationship("Communication", back_populates="talent")
+    certificates = relationship("Certificate", back_populates="talent")

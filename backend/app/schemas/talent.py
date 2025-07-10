@@ -10,23 +10,19 @@ class TalentBase(BaseModel):
     age: Optional[int] = None
     phone: Optional[str] = None
     wechat_note: Optional[str] = None
-    certificate_info: Optional[str] = None
-    certificate_expiry_date: Optional[date] = None
     contract_price: Optional[Decimal] = None
     intention_level: Optional[IntentionLevel] = IntentionLevel.C
 
+    # 地区信息
+    province: Optional[str] = None
+    city: Optional[str] = None
+    address: Optional[str] = None
+
     # 新增字段
     communication_content: Optional[str] = None
-    certificate_level: Optional[str] = None  # 改为字符串类型
-    certificate_specialty: Optional[str] = None  # 改为字符串类型
     social_security_status: Optional[str] = None  # 改为字符串类型
 
-    @field_validator('certificate_expiry_date', mode='before')
-    @classmethod
-    def validate_certificate_expiry_date(cls, v):
-        if v == '' or v is None:
-            return None
-        return v
+
 
     @field_validator('contract_price', mode='before')
     @classmethod
@@ -51,15 +47,16 @@ class TalentUpdate(BaseModel):
     age: Optional[int] = None
     phone: Optional[str] = None
     wechat_note: Optional[str] = None
-    certificate_info: Optional[str] = None
-    certificate_expiry_date: Optional[date] = None
     contract_price: Optional[Decimal] = None
     intention_level: Optional[IntentionLevel] = None
 
+    # 地区信息
+    province: Optional[str] = None
+    city: Optional[str] = None
+    address: Optional[str] = None
+
     # 新增字段
     communication_content: Optional[str] = None
-    certificate_level: Optional[str] = None  # 改为字符串类型
-    certificate_specialty: Optional[str] = None  # 改为字符串类型
     social_security_status: Optional[str] = None  # 改为字符串类型
 
 class Talent(TalentBase):
