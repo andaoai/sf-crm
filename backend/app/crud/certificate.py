@@ -91,7 +91,16 @@ def get_certificates(db: Session, query: CertificateQuery, talent_name: str = No
 
 def create_certificate(db: Session, certificate: CertificateCreate) -> Certificate:
     """创建证书"""
-    db_certificate = Certificate(**certificate.model_dump())
+    cert_data = certificate.model_dump()
+
+    # 自动生成证书名称（如果没有提供）
+    if not cert_data.get('certificate_name'):
+        certificate_name = cert_data.get('certificate_type', '')
+        if cert_data.get('specialty'):
+            certificate_name += f"（{cert_data['specialty']}）"
+        cert_data['certificate_name'] = certificate_name
+
+    db_certificate = Certificate(**cert_data)
     db.add(db_certificate)
     db.commit()
     db.refresh(db_certificate)
@@ -102,6 +111,17 @@ def update_certificate(db: Session, certificate_id: str, certificate: Certificat
     db_certificate = get_certificate(db, certificate_id)
     if db_certificate:
         update_data = certificate.model_dump(exclude_unset=True)
+
+        # 如果更新了证书类型或专业，自动更新证书名称
+        if 'certificate_type' in update_data or 'specialty' in update_data:
+            cert_type = update_data.get('certificate_type', db_certificate.certificate_type)
+            specialty = update_data.get('specialty', db_certificate.specialty)
+
+            certificate_name = cert_type
+            if specialty:
+                certificate_name += f"（{specialty}）"
+            update_data['certificate_name'] = certificate_name
+
         for field, value in update_data.items():
             setattr(db_certificate, field, value)
         db.commit()

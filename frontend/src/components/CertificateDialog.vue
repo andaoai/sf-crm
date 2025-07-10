@@ -46,13 +46,6 @@
         </el-select>
       </el-form-item>
 
-      <el-form-item label="证书名称" prop="certificate_name">
-        <el-input
-          v-model="form.certificate_name"
-          placeholder="请输入证书名称"
-        />
-      </el-form-item>
-
       <el-form-item label="证书编号" prop="certificate_number">
         <el-input
           v-model="form.certificate_number"
@@ -180,7 +173,6 @@ const talents = ref([])
 const form = reactive({
   talent_id: null,
   certificate_type: '',
-  certificate_name: '',
   certificate_number: '',
   issue_date: '',
   expiry_date: '',
@@ -282,7 +274,6 @@ const resetForm = () => {
   Object.assign(form, {
     talent_id: null,
     certificate_type: '',
-    certificate_name: '',
     certificate_number: '',
     issue_date: '',
     expiry_date: '',

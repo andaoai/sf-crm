@@ -141,8 +141,7 @@
               </el-link>
             </template>
           </el-table-column>
-          <el-table-column prop="certificate_type" label="证书类型" width="150" />
-          <el-table-column prop="certificate_name" label="证书名称" min-width="200" />
+          <el-table-column prop="certificate_type" label="证书类型" min-width="200" />
           <el-table-column prop="specialty" label="专业" width="120" />
           <el-table-column prop="level" label="等级" width="80" />
           <el-table-column prop="status" label="状态" width="80">

@@ -217,6 +217,13 @@ def create_certificate(
     certificate_data = certificate.model_dump()
     certificate_data['certificate_id'] = certificate_id
 
+    # 自动生成证书名称（如果没有提供）
+    if not certificate_data.get('certificate_name'):
+        certificate_name = certificate_data.get('certificate_type', '')
+        if certificate_data.get('specialty'):
+            certificate_name += f"（{certificate_data['specialty']}）"
+        certificate_data['certificate_name'] = certificate_name
+
     # 创建新的CertificateCreate对象
     from ...schemas.certificate import CertificateCreate
     certificate_with_id = CertificateCreate(**certificate_data)
@@ -241,7 +248,27 @@ def update_certificate(
     db: Session = Depends(get_db)
 ):
     """更新证书"""
-    db_certificate = crud_certificate.update_certificate(db, certificate_id, certificate)
+    # 获取更新数据
+    update_data = certificate.model_dump(exclude_unset=True)
+
+    # 如果更新了证书类型或专业，自动更新证书名称
+    if 'certificate_type' in update_data or 'specialty' in update_data:
+        # 获取当前证书信息
+        current_cert = crud_certificate.get_certificate(db, certificate_id)
+        if current_cert:
+            cert_type = update_data.get('certificate_type', current_cert.certificate_type)
+            specialty = update_data.get('specialty', current_cert.specialty)
+
+            certificate_name = cert_type
+            if specialty:
+                certificate_name += f"（{specialty}）"
+            update_data['certificate_name'] = certificate_name
+
+    # 重新创建CertificateUpdate对象
+    from ...schemas.certificate import CertificateUpdate
+    certificate_with_name = CertificateUpdate(**update_data)
+
+    db_certificate = crud_certificate.update_certificate(db, certificate_id, certificate_with_name)
     if not db_certificate:
         raise HTTPException(status_code=404, detail="证书不存在")
     return db_certificate
