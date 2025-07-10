@@ -262,7 +262,7 @@ const loadCertificates = async () => {
     total.value = response.data.length
     
     // 更新统计数据
-    updateStats()
+    await updateStats()
   } catch (error) {
     ElMessage.error('加载证书列表失败')
     console.error(error)
@@ -282,13 +282,31 @@ const loadCertificateTypes = async () => {
   }
 }
 
-const updateStats = () => {
-  stats.total = certificates.value.length
-  stats.valid = certificates.value.filter(cert => cert.status === 'VALID').length
-  stats.expired = certificates.value.filter(cert => cert.status === 'EXPIRED').length
-  stats.expiring = certificates.value.filter(cert => 
-    cert.expiry_date && isExpiringSoon(cert.expiry_date)
-  ).length
+const updateStats = async () => {
+  try {
+    // 使用与搜索相同的参数获取统计数据
+    const filteredParams = {}
+    Object.keys(searchForm).forEach(key => {
+      if (searchForm[key] && searchForm[key].trim() !== '') {
+        filteredParams[key] = searchForm[key]
+      }
+    })
+
+    const response = await certificateAPI.getStats(filteredParams)
+    stats.total = response.data.total
+    stats.valid = response.data.valid
+    stats.expired = response.data.expired
+    stats.expiring = response.data.expiring
+  } catch (error) {
+    console.error('获取统计数据失败:', error)
+    // 如果API失败，回退到本地统计
+    stats.total = certificates.value.length
+    stats.valid = certificates.value.filter(cert => cert.status === 'VALID').length
+    stats.expired = certificates.value.filter(cert => cert.status === 'EXPIRED').length
+    stats.expiring = certificates.value.filter(cert =>
+      cert.expiry_date && isExpiringSoon(cert.expiry_date)
+    ).length
+  }
 }
 
 const searchCertificates = () => {

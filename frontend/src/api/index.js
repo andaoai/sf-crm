@@ -42,6 +42,7 @@ export const certificateAPI = {
 
   // 具体证书管理
   getList: (params) => api.get('/certificates/', { params }),
+  getStats: (params) => api.get('/certificates/stats', { params }),
   getById: (id) => api.get(`/certificates/${id}`),
   create: (data) => api.post('/certificates/', data),
   update: (id, data) => api.put(`/certificates/${id}`, data),
