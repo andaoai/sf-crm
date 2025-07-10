@@ -42,6 +42,20 @@ cd /app
 python scripts/direct_data_insert.py
 ```
 
+### 3. test_certificate_types.py
+**证书类型功能测试工具**
+
+功能：
+- 测试证书类型自动补全功能
+- 验证新证书类型的创建和使用
+- 展示证书类型统计信息
+
+使用方法：
+```bash
+# 在Docker容器内运行
+docker-compose exec backend python scripts/test_certificate_types.py
+```
+
 ## 数据说明
 
 插入的测试数据包括：
